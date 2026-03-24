@@ -69,57 +69,69 @@
         /* Mobile responsive */
         @media (max-width: 768px) {
             body {
-                padding: 12px 0 0 0;
+                padding: 0;
+            }
+
+            /* Hide desktop header on mobile */
+            .desktop-header {
+                display: none;
             }
 
             .app-container {
-                gap: 12px;
+                gap: 0;
             }
 
+            /* Sticky mini preview at top */
             #canvas-wrapper {
-                position: relative;
+                position: sticky;
                 top: 0;
+                z-index: 50;
+                background: #1a1a1a;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
                 overflow: hidden;
+                cursor: pointer;
+            }
+
+            #canvas-wrapper::after {
+                content: 'タップでプレビュー拡大';
+                display: block;
+                text-align: center;
+                font-size: 0.65rem;
+                color: #86868b;
+                padding: 4px 0 2px;
+                letter-spacing: 0.05em;
             }
 
             .control-panel {
-                padding: 24px 16px;
+                padding: 20px 16px 40px;
                 border-radius: 0;
                 border: none;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
                 max-height: none;
             }
 
             .slider-row {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            h1.text-4xl {
-                font-size: 1.25rem;
-            }
-
-            .mb-12 {
-                margin-bottom: 0.5rem !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
             }
 
             .color-preset {
-                width: 40px;
-                height: 40px;
+                width: 36px;
+                height: 36px;
             }
 
             .format-btn {
-                padding: 14px 12px;
-                font-size: 0.8rem;
+                padding: 12px 10px;
+                font-size: 0.75rem;
             }
 
             input[type="range"] {
-                height: 10px;
+                height: 8px;
             }
 
             input[type="range"]::-webkit-slider-thumb {
-                width: 28px;
-                height: 28px;
+                width: 26px;
+                height: 26px;
             }
 
             .download-btn {
@@ -129,7 +141,7 @@
             }
 
             .image-upload-area {
-                padding: 32px 16px;
+                padding: 24px 12px;
             }
 
             .section-title {
@@ -139,7 +151,40 @@
 
             input, textarea, select {
                 font-size: 16px !important; /* Prevents iOS zoom on focus */
+                padding: 10px !important;
+                margin-bottom: 14px;
             }
+
+            label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Fullscreen preview overlay */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        .preview-overlay.active {
+            display: flex;
+        }
+
+        .preview-overlay .close-hint {
+            position: absolute;
+            top: max(env(safe-area-inset-top, 16px), 16px);
+            right: 16px;
+            color: #86868b;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
         }
 
         /* Canvas Container */
@@ -495,9 +540,15 @@
 
 <body>
 
-    <div class="mb-12 text-center">
+    <div class="mb-12 text-center desktop-header">
         <h1 class="text-4xl font-black mb-2 tracking-tight">Instagram Story Generator</h1>
         <p class="text-apple-gray">ローカル編集・高画質書き出しツール</p>
+    </div>
+
+    <!-- Fullscreen preview overlay (mobile) -->
+    <div class="preview-overlay" id="preview-overlay" onclick="closePreviewOverlay()">
+        <span class="close-hint">タップで閉じる</span>
+        <div id="overlay-preview"></div>
     </div>
 
     <div class="app-container">
@@ -732,30 +783,81 @@
         let currentGradientAngle = 180;
 
         // Dynamic canvas scaling
+        const isMobile = () => window.innerWidth <= 768;
+
         function updateCanvasScale() {
             const container = document.getElementById('canvas-container');
             const canvasWidth = 1080;
             const canvasHeight = currentFormat === 'feed' ? 1080 : 1920;
-            // Use viewport width for mobile, capped for desktop
             const viewportWidth = window.innerWidth;
-            const availableWidth = viewportWidth - 32; // 16px padding each side
             let scale;
-            if (viewportWidth <= 768) {
-                // Mobile: fill the screen width
-                scale = availableWidth / canvasWidth;
+            if (isMobile()) {
+                // Mobile: small thumbnail preview (120px tall for story, 100px for feed)
+                const targetHeight = currentFormat === 'feed' ? 100 : 120;
+                scale = targetHeight / canvasHeight;
             } else {
-                // Desktop: cap at reasonable size
+                // Desktop
+                const availableWidth = viewportWidth - 32;
                 scale = Math.min(availableWidth * 0.55 / canvasWidth, 0.4);
             }
             container.style.transform = `scale(${scale})`;
-            // Adjust margin-bottom to collapse the scaled space
             const scaledHeight = canvasHeight * scale;
             const marginBottom = -(canvasHeight - scaledHeight);
             container.style.marginBottom = marginBottom + 'px';
+            const scaledWidth = canvasWidth * scale;
+            const marginRight = -(canvasWidth - scaledWidth);
+            container.style.marginRight = marginRight + 'px';
+        }
+
+        // Mobile preview overlay
+        function openPreviewOverlay() {
+            if (!isMobile()) return;
+            const overlay = document.getElementById('preview-overlay');
+            const overlayPreview = document.getElementById('overlay-preview');
+            const container = document.getElementById('canvas-container');
+
+            // Clone canvas into overlay
+            const clone = container.cloneNode(true);
+            clone.style.transform = '';
+            clone.style.marginBottom = '';
+            clone.style.marginRight = '';
+            clone.id = 'overlay-canvas';
+
+            // Scale to fit screen
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const canvasWidth = 1080;
+            const canvasHeight = currentFormat === 'feed' ? 1080 : 1920;
+            const scaleW = (viewportWidth - 32) / canvasWidth;
+            const scaleH = (viewportHeight - 80) / canvasHeight;
+            const scale = Math.min(scaleW, scaleH);
+
+            clone.style.transform = `scale(${scale})`;
+            clone.style.transformOrigin = 'top center';
+            const scaledH = canvasHeight * scale;
+            clone.style.marginBottom = -(canvasHeight - scaledH) + 'px';
+            const scaledW = canvasWidth * scale;
+            clone.style.marginLeft = -(canvasWidth - scaledW) / 2 + 'px';
+            clone.style.marginRight = -(canvasWidth - scaledW) / 2 + 'px';
+
+            overlayPreview.innerHTML = '';
+            overlayPreview.appendChild(clone);
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreviewOverlay() {
+            const overlay = document.getElementById('preview-overlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         window.addEventListener('resize', updateCanvasScale);
-        window.addEventListener('DOMContentLoaded', updateCanvasScale);
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCanvasScale();
+            // Mobile: tap preview to open overlay
+            document.getElementById('canvas-wrapper').addEventListener('click', openPreviewOverlay);
+        });
 
         // Base dimensions for image frame
         const baseFrameWidth = 920;
