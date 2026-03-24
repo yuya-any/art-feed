@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exhibition Cards - Feed Style</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Noto+Serif+JP:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            padding: 60px 40px;
+            color: white;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .page-header h1 {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 8px;
+        }
+
+        .page-header h2 {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Exhibition Card - Square, No border-radius */
+        .exhibition-card {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #111;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.5;
+        }
+
+        .card-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom,
+                    rgba(0, 0, 0, 0.2) 0%,
+                    rgba(0, 0, 0, 0.1) 40%,
+                    rgba(0, 0, 0, 0.7) 75%,
+                    rgba(0, 0, 0, 0.95) 100%);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+
+        /* Header Section */
+        .card-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        /* Cover Card Styles */
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cover-subtitle {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 14px;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 24px;
+            text-transform: uppercase;
+        }
+
+        .cover-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 0.9;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .cover-divider {
+            width: 40px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            margin-bottom: 32px;
+        }
+
+        .cover-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            letter-spacing: 2px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.starting {
+            background: rgba(81, 207, 102, 0.2);
+            border: 1px solid rgba(81, 207, 102, 0.5);
+            color: #51cf66;
+        }
+
+        .status-badge.ending {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            color: #ff6b6b;
+        }
+
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.starting .status-dot {
+            background: #51cf66;
+        }
+
+        .status-badge.ending .status-dot {
+            background: #ff6b6b;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .date-badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .date-month {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .date-day {
+            font-size: 22px;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+        }
+
+        /* Main Content */
+        .card-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .exhibition-category {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .exhibition-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .exhibition-subtitle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Info Tags */
+        .info-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .info-tag {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .info-tag svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.6;
+        }
+
+        /* Footer */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-date {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .footer-venue {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: right;
+        }
+
+        /* Download button */
+        .download-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .exhibition-card:hover .download-btn {
+            opacity: 1;
+        }
+
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .download-btn svg {
+            width: 16px;
+            height: 16px;
+            color: white;
+        }
+
+        /* Image backgrounds */
+        .card-bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.85;
+        }
+
+        .bg-monet {
+            background-image: url('monet-artizon.jpg');
+        }
+
+        .bg-tate {
+            background-image: url('tate-yba.png');
+        }
+
+        .bg-kyoto {
+            background-image: url('kyoto-nippon-festival.jpg');
+        }
+
+        .bg-twilight {
+            background-image: url('twilight-shinhanga.png');
+        }
+
+        .bg-cover {
+            background-image: url('february-cover.jpg');
+            filter: brightness(0.8) contrast(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-header">
+        <h1>Art Exhibition Guide</h1>
+        <h2>2026年の展覧会</h2>
+    </div>
+
+    <div class="cards-grid">
+
+        <!-- Card 0: Cover -->
+        <div class="exhibition-card" id="card-0">
+            <div class="card-bg-image bg-cover"></div>
+            <div class="card-gradient"
+                style="background: linear-gradient(135deg, rgba(26, 26, 26, 0.4) 0%, rgba(0, 0, 0, 0.9) 100%);"></div>
+            <button class="download-btn" onclick="downloadCard('card-0', 'Cover')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <div class="cover-content">
+                <div class="cover-subtitle">Art Exhibition Guide</div>
+                <h2 class="cover-title">FEB<br>2026</h2>
+                <div class="cover-divider"></div>
+                <p class="cover-text">注目の展覧会</p>
+            </div>
+        </div>
+
+        <!-- Card 1: クロード・モネ展 (Artizon) -->
+        <div class="exhibition-card" id="card-1">
+            <div class="card-bg-image bg-monet"></div>
+            <div class="card-gradient"></div>
+            <button class="download-btn" onclick="downloadCard('card-1', 'モネ展')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <div class="card-content">
+                <div class="card-header">
+                    <div class="date-badge">
+                        <div class="date-month">FEB</div>
+                        <div class="date-day">7</div>
+                    </div>
+                </div>
+                <div class="card-main">
+                    <div class="exhibition-category">Impressionism</div>
+                    <h3 class="exhibition-title">クロード・モネ<br>風景への問いかけ</h3>
+                    <p class="exhibition-subtitle">モネ没後100年。オルセー美術館から世界最高峰のモネ・コレクションが一挙来日。</p>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-date">2月7日(土)〜5月24日(日)</div>
+                    <div class="footer-venue">アーティゾン美術館</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: テート美術館 YBA & BEYOND -->
+        <div class="exhibition-card" id="card-2">
+            <div class="card-bg-image bg-tate"></div>
+            <div class="card-gradient"></div>
+            <button class="download-btn" onclick="downloadCard('card-2', 'YBA_BEYOND')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <div class="card-content">
+                <div class="card-header">
+                    <div class="date-badge">
+                        <div class="date-month">FEB</div>
+                        <div class="date-day">11</div>
+                    </div>
+                </div>
+                <div class="card-main">
+                    <div class="exhibition-category">British Art / 90s</div>
+                    <h3 class="exhibition-title">YBA & BEYOND</h3>
+                    <p class="exhibition-subtitle">テート・コレクションから。90年代の英国アート、世界を変えた若きアーティストたち。</p>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-date">2月11日(水)〜5月11日(日)</div>
+                    <div class="footer-venue">国立新美術館</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: KYOTO NIPPON FESTIVAL 2026 -->
+        <div class="exhibition-card" id="card-3">
+            <div class="card-bg-image bg-kyoto"></div>
+            <div class="card-gradient"></div>
+            <button class="download-btn" onclick="downloadCard('card-3', 'KYOTO_NIPPON_FESTIVAL')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <div class="card-content">
+                <div class="card-header">
+                    <div class="date-badge">
+                        <div class="date-month">FEB</div>
+                        <div class="date-day">1</div>
+                    </div>
+                </div>
+                <div class="card-main">
+                    <div class="exhibition-category">Installation / Festival</div>
+                    <h3 class="exhibition-title">KYOTO NIPPON<br>FESTIVAL 2026</h3>
+                    <p class="exhibition-subtitle">咲き誇る梅の花と、極彩色の蜷川カラーの写真・光が融合した幻想的な空間体験。</p>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-date">2月1日(日)〜5月24日(日)</div>
+                    <div class="footer-venue">北野天満宮</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: トワイライト、新版画 -->
+        <div class="exhibition-card" id="card-4">
+            <div class="card-bg-image bg-twilight"></div>
+            <div class="card-gradient"></div>
+            <button class="download-btn" onclick="downloadCard('card-4', 'トワイライト新版画')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <div class="card-content">
+                <div class="card-header">
+                    <div class="date-badge">
+                        <div class="date-month">FEB</div>
+                        <div class="date-day">19</div>
+                    </div>
+                </div>
+                <div class="card-main">
+                    <div class="exhibition-category">Ukiyo-e / Shin-hanga</div>
+                    <h3 class="exhibition-title">トワイライト、新版画<br>小林清親から川瀬巴水まで</h3>
+                    <p class="exhibition-subtitle">明治から昭和初期の画家たちが描いた、夕暮れや夜の風景に焦点を当てた展覧会。</p>
+                </div>
+                <div class="card-footer">
+                    <div class="footer-date">2月19日(木)〜5月24日(日)</div>
+                    <div class="footer-venue">三菱一号館美術館</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        async function downloadCard(cardId, title) {
+            const card = document.getElementById(cardId);
+            const btn = card.querySelector('.download-btn');
+
+            // Hide button during capture
+            btn.style.display = 'none';
+
+            try {
+                const canvas = await html2canvas(card, {
+                    scale: 2,
+                    backgroundColor: '#0a0a0a',
+                    useCORS: true,
+                    logging: false
+                });
+
+                const link = document.createElement('a');
+                link.download = `exhibition_${title.replace(/\s+/g, '_')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error(err);
+                alert('エラーが発生しました');
+            }
+
+            btn.style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>

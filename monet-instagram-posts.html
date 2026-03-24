@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モネ展 Instagram投稿用（全面画像デザイン）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;500;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- html2canvas for high-quality export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Serif JP', serif;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .eng-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* ============================================
+           Post wrapper: 1080x1080 native, scaled for preview
+           story-generator と同じアプローチ:
+           内部は1080pxで描画し、CSSで縮小表示
+           ============================================ */
+        .post-wrapper {
+            position: relative;
+            /* Scale 1080→400 for preview display */
+            width: 400px;
+            height: 400px;
+        }
+
+        .instagram-post {
+            width: 1080px;
+            height: 1080px;
+            position: relative;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            /* Scale down for display: 400/1080 ≈ 0.37 */
+            transform: scale(0.37037);
+            transform-origin: top left;
+        }
+
+        /* Overlay Gradient for Readability */
+        .gradient-overlay {
+            background: linear-gradient(to top,
+                rgba(0,0,0,0.85) 0%,
+                rgba(0,0,0,0.5) 40%,
+                rgba(0,0,0,0.1) 70%,
+                transparent 100%);
+        }
+        /* Large Background Text - scaled up for 1080px */
+        .bg-text {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cinzel', serif;
+            font-size: 270px;
+            color: rgba(255, 255, 255, 0.12);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 5;
+            letter-spacing: -0.02em;
+        }
+        /* Date Badge Style - scaled for 1080px */
+        .date-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 32px;
+        }
+        /*  removed */
+
+        /* Download button per post */
+        .download-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 50;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        .post-wrapper:hover .download-btn {
+            opacity: 1;
+        }
+        .download-btn:hover {
+            background: rgba(255,255,255,0.9);
+            color: black;
+            transform: scale(1.1);
+        }
+        .download-btn.downloading {
+            opacity: 1;
+            pointer-events: none;
+        }
+        .download-btn.downloading svg {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Export All button */
+        .export-all-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941e 100%);
+            color: black;
+            font-weight: 800;
+            padding: 16px 40px;
+            border-radius: 16px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            font-family: 'Noto Serif JP', serif;
+        }
+        .export-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center py-10 gap-10">
+
+    <div class="text-center mb-4">
+        <h1 class="text-3xl font-bold tracking-tight mb-2" style="font-family:'Cinzel',serif;">Monet Exhibition</h1>
+        <p class="text-sm text-gray-400">Instagram Feed Posts — 1080×1080 高画質書き出し</p>
+    </div>
+
+    <!-- Post 1: The Luncheon -->
+    <div class="post-wrapper" data-title="昼食">
+        <div class="instagram-post" data-post-id="1">
+            <!-- Background Image -->
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Monet_Luncheon.jpg/800px-Monet_Luncheon.jpg"
+                     class="w-full h-full object-cover "
+                     alt="昼食"
+                     crossorigin="anonymous">
+            </div>
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 gradient-overlay" style="z-index:6;"></div>
+            <!-- Background Decorative Text -->
+            <div class="bg-text">Monet</div>
+            <!-- Badge (Top Left) -->
+            <div class="absolute z-20 flex flex-col items-center justify-center date-badge text-center leading-none" style="top:40px;left:40px;width:100px;height:100px;">
+                <span class="uppercase tracking-wider mb-1 opacity-80" style="font-size:18px;">No.</span>
+                <span class="font-bold eng-font" style="font-size:52px;">01</span>
+            </div>
+            <!-- Top Right Tag -->
+            <div class="absolute z-20" style="top:44px;right:40px;">
+                <span class="text-white tracking-widest shadow-lg backdrop-blur-sm" style="background:rgba(185,28,28,0.9);font-size:22px;padding:8px 20px;border-radius:4px;">
+                    日本初公開
+                </span>
+            </div>
+            <!-- Content (Bottom) -->
+            <div class="relative z-20" style="padding:40px 50px 60px;">
+                <p class="tracking-widest text-white/70 uppercase eng-font" style="font-size:22px;letter-spacing:0.2em;margin-bottom:6px;">Impressionism</p>
+                <h2 class="font-bold tracking-wide text-white drop-shadow-md" style="font-size:72px;margin-bottom:12px;">《昼食》</h2>
+                <div style="width:80px;height:3px;background:rgba(255,255,255,0.5);margin-bottom:20px;"></div>
+                <p class="leading-relaxed text-white/90 font-light drop-shadow-sm" style="font-size:32px;line-height:1.7;">
+                    モネが家族との日常を描いた、穏やかで光に満ちた初期の傑作。<br>
+                    テーブルの上の静物と木漏れ日が美しい。
+                </p>
+            </div>
+        </div>
+        <button class="download-btn" onclick="downloadPost(this)" title="PNG保存">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Post 2: Woman with a Parasol -->
+    <div class="post-wrapper" data-title="戸外の人物習作">
+        <div class="instagram-post" data-post-id="2">
+            <!-- Background Image -->
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Monet-woman-with-a-parasol-right.jpg"
+                     class="w-full h-full object-cover  object-top"
+                     alt="戸外の人物習作"
+                     crossorigin="anonymous">
+            </div>
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 gradient-overlay" style="z-index:6;"></div>
+            <!-- Background Decorative Text -->
+            <div class="bg-text">Monet</div>
+            <!-- Badge -->
+            <div class="absolute z-20 flex flex-col items-center justify-center date-badge text-center leading-none" style="top:40px;left:40px;width:100px;height:100px;">
+                <span class="uppercase tracking-wider mb-1 opacity-80" style="font-size:18px;">No.</span>
+                <span class="font-bold eng-font" style="font-size:52px;">02</span>
+            </div>
+            <!-- Content -->
+            <div class="relative z-20" style="padding:40px 50px 60px;">
+                <p class="tracking-widest text-white/70 uppercase eng-font" style="font-size:22px;letter-spacing:0.2em;margin-bottom:6px;">Masterpiece</p>
+                <h2 class="font-bold tracking-wide text-white drop-shadow-md leading-tight" style="font-size:60px;margin-bottom:12px;">《戸外の人物習作》</h2>
+                <div style="width:80px;height:3px;background:rgba(255,255,255,0.5);margin-bottom:20px;"></div>
+                <p class="leading-relaxed text-white/90 font-light drop-shadow-sm" style="font-size:32px;line-height:1.7;">
+                    風にたなびくドレス、流れる雲。<br>
+                    あえて顔を描かず「光」と「大気」そのものを捉えた代表作。
+                </p>
+            </div>
+        </div>
+        <button class="download-btn" onclick="downloadPost(this)" title="PNG保存">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Post 3: Saint-Lazare Station -->
+    <div class="post-wrapper" data-title="サン＝ラザール駅">
+        <div class="instagram-post" data-post-id="3">
+            <!-- Background Image -->
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/La_Gare_Saint-Lazare_-_Claude_Monet.jpg/3606px-La_Gare_Saint-Lazare_-_Claude_Monet.jpg"
+                     class="w-full h-full object-cover "
+                     alt="サン＝ラザール駅"
+                     crossorigin="anonymous">
+            </div>
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 gradient-overlay" style="z-index:6;"></div>
+            <!-- Background Decorative Text -->
+            <div class="bg-text">Monet</div>
+            <!-- Badge -->
+            <div class="absolute z-20 flex flex-col items-center justify-center date-badge text-center leading-none" style="top:40px;left:40px;width:100px;height:100px;">
+                <span class="uppercase tracking-wider mb-1 opacity-80" style="font-size:18px;">No.</span>
+                <span class="font-bold eng-font" style="font-size:52px;">03</span>
+            </div>
+            <!-- Content -->
+            <div class="relative z-20" style="padding:40px 50px 60px;">
+                <p class="tracking-widest text-white/70 uppercase eng-font" style="font-size:22px;letter-spacing:0.2em;margin-bottom:6px;">Modern Paris</p>
+                <h2 class="font-bold tracking-wide text-white drop-shadow-md" style="font-size:60px;margin-bottom:12px;">《サン＝ラザール駅》</h2>
+                <div style="width:80px;height:3px;background:rgba(255,255,255,0.5);margin-bottom:20px;"></div>
+                <p class="leading-relaxed text-white/90 font-light drop-shadow-sm" style="font-size:32px;line-height:1.7;">
+                    近代化するパリの蒸気と鉄。<br>
+                    立ち込める煙が光を受けて複雑な色に変化する様を描いた連作。
+                </p>
+            </div>
+        </div>
+        <button class="download-btn" onclick="downloadPost(this)" title="PNG保存">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Export All Button -->
+    <div class="mt-6 mb-10">
+        <button class="export-all-btn" onclick="downloadAll()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            すべて書き出し (PNG)
+        </button>
+        <p class="text-center text-gray-500 text-xs mt-3">2160 × 2160px — Instagram推奨の2倍解像度</p>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        /**
+         * 画質改善ポイント:
+         *
+         * 旧バージョンの画質劣化の原因:
+         * 1. CSSサイズ 400x400px で描画 → html2canvas が画面解像度でキャプチャ
+         *    → scale:2 でも 800x800px しか得られない（Instagram推奨は1080以上）
+         * 2. html2canvas は CSS backdrop-filter, drop-shadow, 複雑な gradient を
+         *    正確にレンダリングできない場合がある
+         * 3. CORS未設定の外部画像は tainted canvas になり、低品質 fallback になる
+         *
+         * 改善策:
+         * - 内部を 1080x1080px でネイティブ描画（story-generator と同じ手法）
+         * - CSS transform: scale() で縮小表示のみ
+         * - 書き出し時は 1080px のまま clone → html2canvas scale:2 → 2160x2160px
+         * - crossorigin="anonymous" を img に付与し CORS 対応
+         * - backdrop-filter は書き出し時に通常の background に fallback
+         */
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function downloadPost(btnEl) {
+            const wrapper = btnEl.closest('.post-wrapper');
+            const post = wrapper.querySelector('.instagram-post');
+            const postId = post.dataset.postId;
+            const title = wrapper.dataset.title || 'monet-post';
+
+            btnEl.classList.add('downloading');
+
+            try {
+                // html2canvas の onclone で内部クローンを直接修正する方式
+                // 手動クローン + offscreen 配置だと座標ずれが発生するため、
+                // 元要素をそのまま渡し、onclone 内で transform 解除・実寸化する
+                const canvas = await html2canvas(post, {
+                    width: 1080,
+                    height: 1080,
+                    scale: 2,              // → 2160x2160 output
+                    backgroundColor: '#000000',
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: false,
+                    imageTimeout: 15000,
+                    onclone: (clonedDoc) => {
+                        // html2canvas が作成した内部クローンの document から
+                        // 対応する要素を取得してスタイルを修正
+                        const clonedPost = clonedDoc.querySelector(
+                            `.instagram-post[data-post-id="${postId}"]`
+                        );
+                        if (clonedPost) {
+                            clonedPost.style.transform = 'none';
+                            clonedPost.style.width = '1080px';
+                            clonedPost.style.height = '1080px';
+
+                            // backdrop-filter fallback for html2canvas
+                            clonedPost.querySelectorAll('.date-badge').forEach(el => {
+                                el.style.backdropFilter = 'none';
+                                el.style.webkitBackdropFilter = 'none';
+                                el.style.background = 'rgba(255, 255, 255, 0.25)';
+                            });
+                        }
+
+                        // parent wrapper も実寸に合わせる
+                        const clonedWrapper = clonedPost?.closest('.post-wrapper');
+                        if (clonedWrapper) {
+                            clonedWrapper.style.width = '1080px';
+                            clonedWrapper.style.height = '1080px';
+                        }
+                    },
+                });
+
+                // PNG (lossless) で書き出し
+                const link = document.createElement('a');
+                link.download = `Monet_${title}_1080.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+
+                showToast(`✓ ${title} を保存しました (2160×2160px)`);
+            } catch (err) {
+                console.error('Export error:', err);
+                showToast('⚠ 書き出しに失敗しました。CORSエラーの可能性があります。');
+            } finally {
+                btnEl.classList.remove('downloading');
+            }
+        }
+
+        async function downloadAll() {
+            const wrappers = document.querySelectorAll('.post-wrapper');
+            const btn = document.querySelector('.export-all-btn');
+            const originalText = btn.innerHTML;
+
+            for (let i = 0; i < wrappers.length; i++) {
+                btn.innerHTML = `書き出し中... (${i + 1}/${wrappers.length})`;
+                const dlBtn = wrappers[i].querySelector('.download-btn');
+                await downloadPost(dlBtn);
+                // Stagger downloads to avoid browser blocking
+                await new Promise(r => setTimeout(r, 800));
+            }
+
+            btn.innerHTML = originalText;
+            showToast(`✓ ${wrappers.length}件すべて保存しました`);
+        }
+    </script>
+</body>
+</html>

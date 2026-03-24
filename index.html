@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Story Generator - Art Feed</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Zen Kaku Gothic New"', 'sans-serif'],
+                    },
+                    colors: {
+                        'noble-gold': '#A8A375',
+                        'sweden-yellow': '#FFCD00',
+                        'sweden-blue': '#005293',
+                        'off-black': '#0a0a0a',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f140f;
+            color: #f5f5f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+        }
+
+        /* Canvas Container */
+        #canvas-container {
+            width: 1080px;
+            height: 1920px;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            /* Scale for desktop preview */
+            transform-origin: top center;
+            transform: scale(0.35);
+            margin-bottom: -1200px;
+        }
+
+        @media (max-width: 768px) {
+            #canvas-container {
+                transform: scale(0.28);
+                margin-bottom: -1350px;
+            }
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #ffd700 0%, #fdb931 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mb-8 text-center z-10">
+        <h1 class="text-2xl font-bold mb-2">Instagram Story Generator</h1>
+        <p class="text-gray-400 text-sm">プレビュー (1080x1920)</p>
+    </div>
+
+    <!-- The Canvas Area -->
+    <div id="canvas-container" class="flex flex-col justify-between relative">
+
+        <!-- Background Elements: Subtle Blue Tint for Sweden theme -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#00529333_0%,_#000000_60%)]"></div>
+
+        <!-- Top Section: Art & Title -->
+        <div class="relative z-10 pt-96 px-16">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-noble-gold text-2xl font-bold tracking-[0.3em] uppercase mb-4">Swedish Painting</p>
+                    <h1 class="text-8xl font-black text-white leading-tight">
+                        開幕まで<br>
+                        <span class="text-gradient-gold">あと1週間。</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Descriptive Text -->
+            <div class="mt-12">
+                <p class="text-6xl text-white font-black tracking-wider mb-3 leading-tight">
+                    スウェーデン展
+                </p>
+                <div class="w-24 h-2 bg-sweden-yellow mb-6"></div>
+                <p class="text-4xl text-gray-200 font-bold tracking-wide">
+                    東京都美術館
+                </p>
+            </div>
+        </div>
+
+        <!-- Middle Section: EMPTY SPACE for Question Box -->
+        <div class="flex-grow flex items-center justify-center relative z-10">
+            <!-- Completely empty -->
+        </div>
+
+        <!-- Bottom Section: Art -->
+        <div class="relative z-10 pb-32 text-center">
+            <!-- Art Image -->
+            <div class="absolute bottom-0 left-0 w-full h-[1200px] opacity-90 pointer-events-none">
+                <img src="art_background.jpg" class="w-full h-full object-cover object-center"
+                    style="-webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%); mask-image: linear-gradient(to top, black 50%, transparent 100%);"
+                    alt="Art Background">
+            </div>
+
+            <div class="relative z-20">
+                <!-- Text removed -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Download Button (Floating) -->
+    <button onclick="downloadStory()"
+        class="fixed bottom-10 right-10 z-50 bg-sweden-yellow text-black font-bold py-4 px-8 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        高画質で保存 (2160x3840)
+    </button>
+
+    <!-- Controls hidden but function preserved -->
+    <script>
+        function downloadStory() {
+            const canvasContainer = document.getElementById('canvas-container');
+
+            const originalTransform = canvasContainer.style.transform;
+            const originalMargin = canvasContainer.style.marginBottom;
+            const originalPosition = canvasContainer.style.position;
+
+            canvasContainer.style.transform = 'scale(1)';
+            canvasContainer.style.marginBottom = '0';
+            canvasContainer.style.position = 'fixed';
+            canvasContainer.style.top = '0';
+            canvasContainer.style.left = '0';
+            canvasContainer.style.zIndex = '-100';
+
+            html2canvas(canvasContainer, {
+                width: 1080,
+                height: 1920,
+                scale: 2, // Double the resolution (High-DPI / Super-sampling)
+                backgroundColor: '#000000',
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Swedish_Painting_Story_HighRes.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                canvasContainer.style.transform = originalTransform;
+                canvasContainer.style.marginBottom = originalMargin;
+                canvasContainer.style.position = originalPosition;
+                canvasContainer.style.top = 'auto';
+                canvasContainer.style.left = 'auto';
+                canvasContainer.style.zIndex = 'auto';
+            }).catch(err => {
+                console.error(err);
+                alert('エラーが発生しました。');
+
+                canvasContainer.style.transform = originalTransform;
+                canvasContainer.style.marginBottom = originalMargin;
+                canvasContainer.style.position = originalPosition;
+                canvasContainer.style.top = 'auto';
+                canvasContainer.style.left = 'auto';
+                canvasContainer.style.zIndex = 'auto';
+            });
+        }
+    </script>
+</body>
+
+</html>

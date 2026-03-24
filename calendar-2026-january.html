@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Exhibition Calendar - January 2026</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Zen Kaku Gothic New', sans-serif;
+            background-color: #f5f3ef;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        /* Japanese wave pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='0' cy='50' r='40' fill='none' stroke='%23e8e4dd' stroke-width='1'/%3E%3Ccircle cx='50' cy='0' r='40' fill='none' stroke='%23e8e4dd' stroke-width='1'/%3E%3Ccircle cx='100' cy='50' r='40' fill='none' stroke='%23e8e4dd' stroke-width='1'/%3E%3Ccircle cx='50' cy='100' r='40' fill='none' stroke='%23e8e4dd' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 80px 80px;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Cloud pattern decoration */
+        .cloud-decoration {
+            position: fixed;
+            width: 120px;
+            height: 60px;
+            background: radial-gradient(ellipse at center, #e0dcd5 0%, transparent 70%);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .cloud-1 {
+            top: 5%;
+            right: 5%;
+        }
+
+        .cloud-2 {
+            top: 8%;
+            right: 15%;
+        }
+
+        .cloud-3 {
+            bottom: 10%;
+            left: 5%;
+        }
+
+        .calendar-container {
+            width: 1000px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 48px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .calendar-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #1a1a1a;
+        }
+
+        .year {
+            font-size: 48px;
+            font-weight: 900;
+            color: #1a1a1a;
+            letter-spacing: -1px;
+        }
+
+        .month {
+            font-size: 48px;
+            font-weight: 300;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        /* Weekday Headers */
+        .weekday {
+            text-align: center;
+            padding: 8px 0 16px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+        }
+
+        .weekday.sunday {
+            color: #c41e3a;
+        }
+
+        .weekday.saturday {
+            color: #1a1a1a;
+        }
+
+        /* Day Cells */
+        .day {
+            min-height: 120px;
+            padding: 8px;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .day.empty {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .day-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+
+        .day.sunday .day-number {
+            color: #c41e3a;
+        }
+
+        .day.holiday .day-number {
+            color: #c41e3a;
+        }
+
+        .holiday-name {
+            font-size: 10px;
+            color: #c41e3a;
+            font-weight: 600;
+            margin-left: 4px;
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+        }
+
+        /* Event Card with Image */
+        .event {
+            margin-top: 4px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            background: #333;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 75px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .event-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 6px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .event-status {
+            display: inline-block;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 2px;
+            margin-bottom: 4px;
+            width: fit-content;
+        }
+
+        .event-status.ended {
+            background: #868e96;
+            color: white;
+        }
+
+        .event-status.starting {
+            background: #51cf66;
+            color: white;
+        }
+
+        .event-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 2px;
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+        }
+
+        .event-venue {
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+        }
+
+        /* Placeholder image backgrounds */
+        .event-bg-1 {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+        }
+
+        .event-bg-2 {
+            background: linear-gradient(135deg, #4a90a4 0%, #2d5a6b 100%);
+        }
+
+        .event-bg-3 {
+            background: linear-gradient(135deg, #e8d4a8 0%, #c9b896 100%);
+        }
+
+        .event-bg-4 {
+            background: linear-gradient(135deg, #8b7355 0%, #6b5344 100%);
+        }
+
+        .event-bg-5 {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+        }
+
+        .event-bg-6 {
+            background: linear-gradient(135deg, #c9a959 0%, #a68b3d 100%);
+        }
+
+        .event-bg-7 {
+            background: linear-gradient(135deg, #e8dcc8 0%, #c9bda8 100%);
+        }
+
+        .event-bg-8 {
+            background: linear-gradient(135deg, #ff6b35 0%, #cc5329 100%);
+        }
+
+        .event-bg-9 {
+            background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
+        }
+
+        .event-placeholder {
+            width: 100%;
+            height: 75px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Decorative clouds -->
+    <div class="cloud-decoration cloud-1"></div>
+    <div class="cloud-decoration cloud-2"></div>
+    <div class="cloud-decoration cloud-3"></div>
+
+    <div class="calendar-container">
+        <!-- Header -->
+        <div class="calendar-header">
+            <span class="year">2026</span>
+            <span class="month">JANUARY</span>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid">
+            <!-- Weekday Headers -->
+            <div class="weekday sunday">SUN</div>
+            <div class="weekday">MON</div>
+            <div class="weekday">TUE</div>
+            <div class="weekday">WED</div>
+            <div class="weekday">THU</div>
+            <div class="weekday">FRI</div>
+            <div class="weekday saturday">SAT</div>
+
+            <!-- Week 1 -->
+            <div class="day empty"></div>
+            <div class="day empty"></div>
+            <div class="day empty"></div>
+            <div class="day empty"></div>
+            <div class="day holiday">
+                <div class="day-number">1<span class="holiday-name">元日</span></div>
+            </div>
+            <div class="day">
+                <div class="day-number">2</div>
+            </div>
+            <div class="day">
+                <div class="day-number">3</div>
+            </div>
+
+            <!-- Week 2 -->
+            <div class="day sunday">
+                <div class="day-number">4</div>
+            </div>
+            <div class="day">
+                <div class="day-number">5</div>
+            </div>
+            <div class="day">
+                <div class="day-number">6</div>
+            </div>
+            <div class="day">
+                <div class="day-number">7</div>
+            </div>
+            <div class="day">
+                <div class="day-number">8</div>
+            </div>
+            <div class="day">
+                <div class="day-number">9</div>
+            </div>
+            <div class="day">
+                <div class="day-number">10</div>
+            </div>
+
+            <!-- Week 3 -->
+            <div class="day sunday">
+                <div class="day-number">11</div>
+            </div>
+            <div class="day">
+                <div class="day-number">12</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-1"></div>
+                    <div class="event-overlay">
+                        <div class="event-status ended">終了</div>
+                        <div class="event-title">根来 - 赤と黒のうるし</div>
+                        <div class="event-venue">サントリー美術館</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">13</div>
+            </div>
+            <div class="day">
+                <div class="day-number">14</div>
+            </div>
+            <div class="day">
+                <div class="day-number">15</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-2"></div>
+                    <div class="event-overlay">
+                        <div class="event-status starting">開始</div>
+                        <div class="event-title">美しいユートピア</div>
+                        <div class="event-venue">パナソニック汐留美術館</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">16</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-3"></div>
+                    <div class="event-overlay">
+                        <div class="event-status starting">開始</div>
+                        <div class="event-title">劇場アニメ ルックバック展</div>
+                        <div class="event-venue">麻布台ヒルズギャラリー</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">17</div>
+            </div>
+
+            <!-- Week 4 -->
+            <div class="day sunday">
+                <div class="day-number">18</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-4"></div>
+                    <div class="event-overlay">
+                        <div class="event-status ended">終了</div>
+                        <div class="event-title">東京富士美術館コレクション</div>
+                        <div class="event-venue">東京富士美術館</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">19</div>
+            </div>
+            <div class="day">
+                <div class="day-number">20</div>
+            </div>
+            <div class="day">
+                <div class="day-number">21</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-5"></div>
+                    <div class="event-overlay">
+                        <div class="event-status starting">開始</div>
+                        <div class="event-title">アルフレド・ジャー<br>YOU AND ME AND THE OTHERS</div>
+                        <div class="event-venue">東京オペラシティ</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">22</div>
+            </div>
+            <div class="day">
+                <div class="day-number">23</div>
+            </div>
+            <div class="day">
+                <div class="day-number">24</div>
+            </div>
+
+            <!-- Week 5 -->
+            <div class="day sunday">
+                <div class="day-number">25</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-6"></div>
+                    <div class="event-overlay">
+                        <div class="event-status ended">終了</div>
+                        <div class="event-title">博物館に初もうで</div>
+                        <div class="event-venue">東京国立博物館</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">26</div>
+            </div>
+            <div class="day">
+                <div class="day-number">27</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-7"></div>
+                    <div class="event-overlay">
+                        <div class="event-status starting">開始</div>
+                        <div class="event-title">スウェーデン絵画 北欧の光</div>
+                        <div class="event-venue">東京都美術館</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">28</div>
+            </div>
+            <div class="day">
+                <div class="day-number">29</div>
+            </div>
+            <div class="day">
+                <div class="day-number">30</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-8"></div>
+                    <div class="event-overlay">
+                        <div class="event-status starting">開始</div>
+                        <div class="event-title">攻殻機動隊展</div>
+                        <div class="event-venue">TOKYO NODE (虎ノ門)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day">
+                <div class="day-number">31</div>
+                <div class="event">
+                    <div class="event-placeholder event-bg-9"></div>
+                    <div class="event-overlay">
+                        <div class="event-status ended">終了</div>
+                        <div class="event-title">メタル展</div>
+                        <div class="event-venue">銀座メゾンエルメス</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
