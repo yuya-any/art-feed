@@ -69,21 +69,25 @@
         /* Mobile responsive */
         @media (max-width: 768px) {
             body {
-                padding: 16px 8px;
+                padding: 12px 0 0 0;
             }
 
             .app-container {
-                gap: 20px;
+                gap: 12px;
             }
 
             #canvas-wrapper {
                 position: relative;
                 top: 0;
+                overflow: hidden;
             }
 
             .control-panel {
-                padding: 20px 16px;
-                border-radius: 16px;
+                padding: 24px 16px;
+                border-radius: 0;
+                border: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                max-height: none;
             }
 
             .slider-row {
@@ -92,7 +96,11 @@
             }
 
             h1.text-4xl {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
+            }
+
+            .mb-12 {
+                margin-bottom: 0.5rem !important;
             }
 
             .color-preset {
@@ -117,10 +125,20 @@
             .download-btn {
                 padding: 18px;
                 font-size: 1rem;
+                border-radius: 12px;
             }
 
             .image-upload-area {
                 padding: 32px 16px;
+            }
+
+            .section-title {
+                font-size: 0.9rem;
+                margin-top: 16px;
+            }
+
+            input, textarea, select {
+                font-size: 16px !important; /* Prevents iOS zoom on focus */
             }
         }
 
@@ -716,13 +734,19 @@
         // Dynamic canvas scaling
         function updateCanvasScale() {
             const container = document.getElementById('canvas-container');
-            const wrapper = document.getElementById('canvas-wrapper');
             const canvasWidth = 1080;
             const canvasHeight = currentFormat === 'feed' ? 1080 : 1920;
-            const availableWidth = wrapper.parentElement.clientWidth;
-            // Leave some padding
-            const maxWidth = Math.min(availableWidth - 16, 600);
-            const scale = Math.min(maxWidth / canvasWidth, 0.35);
+            // Use viewport width for mobile, capped for desktop
+            const viewportWidth = window.innerWidth;
+            const availableWidth = viewportWidth - 32; // 16px padding each side
+            let scale;
+            if (viewportWidth <= 768) {
+                // Mobile: fill the screen width
+                scale = availableWidth / canvasWidth;
+            } else {
+                // Desktop: cap at reasonable size
+                scale = Math.min(availableWidth * 0.55 / canvasWidth, 0.4);
+            }
             container.style.transform = `scale(${scale})`;
             // Adjust margin-bottom to collapse the scaled space
             const scaledHeight = canvasHeight * scale;
